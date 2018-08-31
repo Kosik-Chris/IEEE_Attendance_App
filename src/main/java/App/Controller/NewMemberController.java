@@ -31,6 +31,7 @@ import java.io.IOException;
 
 public class NewMemberController {
 
+    //TODO: Get google sheets API example working for duplication/ functionality across application
     private static final String APPLICATION_NAME = "IEEE Attendance";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
