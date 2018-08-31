@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+
+<VBox prefHeight="400.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="App.Controller.EventSearchController">
+  <children>
+    <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
+         <children>
+            <TitledPane animated="false" prefHeight="400.0" prefWidth="640.0" text="Event Search">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <ScrollPane prefHeight="374.0" prefWidth="416.0">
+                          <content>
+                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="364.0" prefWidth="404.0">
+                                 <children>
+                                    <ListView prefHeight="371.0" prefWidth="412.0" />
+                                 </children>
+                              </AnchorPane>
+                          </content>
+                        </ScrollPane>
+                        <Pane layoutX="416.0" prefHeight="377.0" prefWidth="223.0">
+                           <children>
+                              <Button fx:id="homeBtn" layoutX="171.0" layoutY="2.0" mnemonicParsing="false" onAction="#returnHome" text="Home" />
+                              <Text layoutX="3.0" layoutY="40.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Event Search Type" />
+                              <ChoiceBox fx:id="eventSearchType" layoutX="3.0" layoutY="44.0" prefWidth="150.0" />
+                              <Text layoutX="3.0" layoutY="110.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Event Results displayed by type on left" />
+                              <Text layoutX="3.0" layoutY="148.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Select search to query Database" />
+                              <Button fx:id="confirmBtn" layoutX="28.0" layoutY="331.0" mnemonicParsing="false" text="Confirm" />
+                              <Button fx:id="searchBtn" layoutX="127.0" layoutY="331.0" mnemonicParsing="false" text="Search" />
+                              <Text layoutX="3.0" layoutY="185.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Click Event on left and  then click " />
+                              <Text layoutX="3.0" layoutY="213.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Confirm to edit" />
+                           </children>
+                        </Pane>
+                     </children>
+                  </AnchorPane>
+              </content>
+            </TitledPane>
+         </children>
+    </AnchorPane>
+  </children>
+</VBox>

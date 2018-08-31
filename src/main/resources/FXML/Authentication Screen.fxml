@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox prefHeight="400.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="App.Controller.AuthenticationController">
+  <children>
+    <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
+      <children>
+        <Label alignment="CENTER" layoutX="155.0" layoutY="177.0" style="&#10;" textAlignment="CENTER" textFill="#9f9f9f" wrapText="false">
+          <font>
+            <Font size="18.0" />
+          </font>
+        </Label>
+            <Label layoutX="199.0" layoutY="52.0" prefHeight="45.0" prefWidth="305.0" text="Authentication Screen">
+               <font>
+                  <Font size="30.0" />
+               </font>
+            </Label>
+            <PasswordField fx:id="authPassField" layoutX="268.0" layoutY="204.0" prefHeight="25.0" prefWidth="167.0" />
+            <Label layoutX="155.0" layoutY="208.0" text="Enter Password" />
+            <Button fx:id="authEnterBtn" layoutX="250.0" layoutY="250.0" mnemonicParsing="false" onAction="#checkPassword" prefHeight="25.0" prefWidth="70.0" text="Enter" />
+            <Button fx:id="authResetBtn" layoutX="375.0" layoutY="250.0" mnemonicParsing="false" onAction="#resetPassField" prefHeight="25.0" prefWidth="60.0" text="Reset" />
+      </children>
+    </AnchorPane>
+  </children>
+</VBox>
