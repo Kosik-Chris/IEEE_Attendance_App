@@ -1,5 +1,8 @@
 package App.Controller;
 
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.services.sheets.v4.Sheets;
+import com.google.api.services.sheets.v4.model.ValueRange;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -23,6 +26,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,12 +41,12 @@ public class NewMemberController {
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
 
     private static final List<String> SCOPES = Collections.singletonList(SheetsScopes.SPREADSHEETS_READONLY);
-    private static final String CREDENTIALS_FILE_PATH = "src/App/resources/credentials.json";
+    private static final String CREDENTIALS_FILE_PATH = "C:\\Users\\chris\\IdeaProjects\\IEEE_Attendance_App\\src\\main\\resources";
 
     private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
         // Load client secrets.
-        InputStream in = NewMemberController.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
-        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+        InputStream info = NewMemberController.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
+        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(info));
 
         // Build flow and trigger user authorization request.
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
@@ -55,15 +59,9 @@ public class NewMemberController {
 
 
    public NewMemberController(){
-        ObservableList<String> gradeChoices = FXCollections.observableArrayList("Freshmen",
-                "Sophomore", "Junior", "Senior");
-        gradeInput.setItems(gradeChoices);
-        ObservableList<String> positionChoices = FXCollections.observableArrayList("Member","President",
-                "Vice-President","Secretary","Treasurer","Affairs Director","Publicity Director",
-                "Fund-Raising Director","External Director","Event Director","Webmaster");
-        positionInput.setItems(positionChoices);
-
+        initializeLists();
     }
+
 
     @FXML
     private Button homeBtn,submitBtn,clearBtn;
@@ -71,6 +69,12 @@ public class NewMemberController {
     private TextField nameInput,gradYearInput,schoolIDInput;
     @FXML
     private ChoiceBox<String> gradeInput,positionInput;
+
+
+    private void initializeLists(){
+
+    }
+
 
 
     @FXML
@@ -85,17 +89,17 @@ public class NewMemberController {
         newHomeStage.show();
     }
     @FXML
-    private void submitValues(){
+    private void submitValues() throws GeneralSecurityException, IOException {
         //get current values filled out by user make sure none are null
-        if(nameInput.getText() == null){
+        if(nameInput.getText().equals("") || nameInput.getText() == null){
             JOptionPane.showMessageDialog(null,"Must fill out Name Field");
             return;
         }
-        if(gradYearInput.getText() == null){
+        if(gradYearInput.getText().equals("") || gradYearInput.getText() == null){
             JOptionPane.showMessageDialog(null,"Must fill out Grad year Field");
             return;
         }
-        if(schoolIDInput.getText() == null){
+        if(schoolIDInput.getText().equals("") || schoolIDInput.getText() == null){
             JOptionPane.showMessageDialog(null,"Must fill out School ID Field");
             return;
         }
@@ -117,23 +121,46 @@ public class NewMemberController {
         //if ID already exists then call Edit Member functions to update values and notify user
         //else write new member info on a new line
         Boolean searchResult = searchSchoolID(IDSubmit);
-        if(searchResult == false){
+        if(!searchResult){
             //Good to write values!
 
         }
         else{
             //Values already exist! move to edit functions
-
+            System.out.println("Values found");
         }
 
 
 
 
     }
-    private Boolean searchSchoolID(String schoolID){
+    private Boolean searchSchoolID(String schoolID) throws GeneralSecurityException, IOException {
         //go through master sheet and search schoolID column for the set ID return false if DNE
         //return true if exists
-        return false;
+
+        //Build API client
+        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+        final String spreadsheetId = "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms";
+        final String range = "Class Data!A2:E";
+        Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+                .setApplicationName(APPLICATION_NAME)
+                .build();
+        ValueRange response = service.spreadsheets().values()
+                .get(spreadsheetId, range)
+                .execute();
+        List<List<Object>> values = response.getValues();
+        if (values == null || values.isEmpty()) {
+            System.out.println("No data found.");
+        } else {
+            System.out.println("Name, Major");
+            for (List row : values) {
+                // Print columns A and E, which correspond to indices 0 and 4.
+                System.out.printf("%s, %s\n", row.get(0), row.get(4));
+            }
+        }
+
+
+        return true;
     }
 
     @FXML
@@ -141,6 +168,8 @@ public class NewMemberController {
         nameInput.setText("");
         gradYearInput.setText("");
         schoolIDInput.setText("");
+        gradeInput.getSelectionModel().clearSelection();
+        positionInput.getSelectionModel().clearSelection();
 
 
     }
