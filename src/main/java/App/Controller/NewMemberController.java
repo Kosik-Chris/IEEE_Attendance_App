@@ -1,6 +1,9 @@
 package App.Controller;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.googleapis.json.GoogleJsonError;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import com.google.api.client.util.Data;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import javafx.collections.FXCollections;
@@ -27,6 +30,8 @@ import javafx.stage.Stage;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -40,13 +45,14 @@ public class NewMemberController {
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
 
-    private static final List<String> SCOPES = Collections.singletonList(SheetsScopes.SPREADSHEETS_READONLY);
-    private static final String CREDENTIALS_FILE_PATH = "C:\\Users\\chris\\IdeaProjects\\IEEE_Attendance_App\\src\\main\\resources";
+    private static final List<String> SCOPES = Collections.singletonList(SheetsScopes.SPREADSHEETS);
+    private static final String CREDENTIALS_FILE_PATH = "credentials.json";
 
-    private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
+    private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
         // Load client secrets.
-        InputStream info = NewMemberController.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
-        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(info));
+        InputStream info = getClass().getClassLoader().getResourceAsStream(CREDENTIALS_FILE_PATH);
+        InputStreamReader streamReader = new InputStreamReader(info);
+        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, streamReader);
 
         // Build flow and trigger user authorization request.
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
@@ -120,45 +126,84 @@ public class NewMemberController {
         //Write to master file after checking to see if schoolID already exists
         //if ID already exists then call Edit Member functions to update values and notify user
         //else write new member info on a new line
-        Boolean searchResult = searchSchoolID(IDSubmit);
-        if(!searchResult){
-            //Good to write values!
-
-        }
-        else{
-            //Values already exist! move to edit functions
-            System.out.println("Values found");
-        }
+        writeValues(nameSubmit,gradSubmit,IDSubmit,gradeSubmit,positionSubmit);
 
 
 
 
     }
-    private Boolean searchSchoolID(String schoolID) throws GeneralSecurityException, IOException {
+    private Boolean writeValues(String nameSubmit, String gradSubmit,
+                                String schoolID,String gradeSubmit,
+                                String positionSubmit) throws GeneralSecurityException, IOException {
         //go through master sheet and search schoolID column for the set ID return false if DNE
         //return true if exists
 
         //Build API client
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-        final String spreadsheetId = "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms";
-        final String range = "Class Data!A2:E";
+        final String spreadsheetId = "1Wvy4l3bWewgshHGMe9U59x01IM7KtuoeeEu65FdWGyQ";
+        final String range = "Members!A2:E";
         Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
                 .setApplicationName(APPLICATION_NAME)
                 .build();
-        ValueRange response = service.spreadsheets().values()
-                .get(spreadsheetId, range)
-                .execute();
-        List<List<Object>> values = response.getValues();
-        if (values == null || values.isEmpty()) {
-            System.out.println("No data found.");
-        } else {
-            System.out.println("Name, Major");
-            for (List row : values) {
-                // Print columns A and E, which correspond to indices 0 and 4.
-                System.out.printf("%s, %s\n", row.get(0), row.get(4));
-            }
-        }
 
+        //Create Data List of user input
+        List<Object> userData = new ArrayList<>();
+        userData.add(nameSubmit);
+        userData.add(gradSubmit);
+        userData.add(schoolID);
+        userData.add(gradeSubmit);
+        userData.add(positionSubmit);
+
+        try {
+            ValueRange response = service.spreadsheets().values()
+                    .get(spreadsheetId, range)
+                    .execute();
+
+            List<List<Object>> values = response.getValues();
+            int dataLength = 0;
+            Boolean newMember = true;
+            if (values == null || values.isEmpty()) {
+                System.out.println("No data found.");
+            } else {
+                System.out.println("DATA");
+                for (List row : values) {
+                    dataLength++;
+                    // Print columns A and E, which correspond to indices 0 and 4.
+                    //System.out.printf("%s, %s, %s, %s, %s\n", row.get(0), row.get(1), row.get(2), row.get(3), row.get(4));
+                    if(row.get(0).equals(schoolID)){
+                        System.out.println(schoolID+" ALREADY EXISTS Transferring to edit functionality.");
+                        newMember = false;
+                    }
+                }
+                System.out.println("NO Matching values found.");
+            }
+
+            if(newMember){
+                //Add Member Functionality
+                try {
+                    String dataLengthString = Integer.toString(dataLength);
+                    String writeRangeString = "Members!A" + dataLengthString + ":E" + dataLengthString;
+                    List<List<Object>> updateValues = new ArrayList<>();
+                    updateValues.add(userData);
+
+                    ValueRange vr = new ValueRange().setValues(updateValues).setMajorDimension("ROWS");
+                    service.spreadsheets().values()
+                            .update(spreadsheetId, writeRangeString, vr).setValueInputOption("RAW").execute();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
+
+            }
+            if(!newMember){
+                //Edit Member Functionality
+
+            }
+
+        }catch(GoogleJsonResponseException e){
+            GoogleJsonError error = e.getDetails();
+            System.out.println(error);
+        }
 
         return true;
     }
