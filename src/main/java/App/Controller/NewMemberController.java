@@ -40,7 +40,6 @@ import java.io.IOException;
 
 public class NewMemberController {
 
-    //TODO: Get google sheets API example working for duplication/ functionality across application
     private static final String APPLICATION_NAME = "IEEE Attendance";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
@@ -72,7 +71,7 @@ public class NewMemberController {
     @FXML
     private Button homeBtn,submitBtn,clearBtn;
     @FXML
-    private TextField nameInput,gradYearInput,schoolIDInput;
+    private TextField nameInput,gradYearInput,schoolIDInput,emailInput;
     @FXML
     private ChoiceBox<String> gradeInput,positionInput;
 
@@ -80,6 +79,7 @@ public class NewMemberController {
     private void initializeLists(){
 
     }
+
 
 
 
@@ -117,16 +117,21 @@ public class NewMemberController {
             JOptionPane.showMessageDialog(null,"Must select a position");
             return;
         }
+        if(emailInput.getText().equals("") || emailInput.getText() == null){
+            JOptionPane.showMessageDialog(null,"Must fill out email Field");
+            return;
+        }
         String nameSubmit = nameInput.getText();
         String gradSubmit = gradYearInput.getText();
         String IDSubmit = schoolIDInput.getText();
         String gradeSubmit = gradeInput.getSelectionModel().getSelectedItem();
         String positionSubmit = positionInput.getSelectionModel().getSelectedItem();
+        String emailSubmit = emailInput.getText();
 
         //Write to master file after checking to see if schoolID already exists
         //if ID already exists then call Edit Member functions to update values and notify user
         //else write new member info on a new line
-        writeValues(nameSubmit,gradSubmit,IDSubmit,gradeSubmit,positionSubmit);
+        writeValues(nameSubmit,gradSubmit,IDSubmit,gradeSubmit,positionSubmit,emailSubmit);
 
 
 
@@ -134,25 +139,27 @@ public class NewMemberController {
     }
     private Boolean writeValues(String nameSubmit, String gradSubmit,
                                 String schoolID,String gradeSubmit,
-                                String positionSubmit) throws GeneralSecurityException, IOException {
+                                String positionSubmit,String emailSubmit) throws GeneralSecurityException, IOException {
         //go through master sheet and search schoolID column for the set ID return false if DNE
         //return true if exists
 
         //Build API client
+
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-        final String spreadsheetId = "1Wvy4l3bWewgshHGMe9U59x01IM7KtuoeeEu65FdWGyQ";
-        final String range = "Members!A2:E";
+        final String spreadsheetId = "1OoNGD2intKAiMGvaD3-4G9XHLqI9rJfdmFqC0MdFwqE";
+        final String range = "Members!A2:F";
         Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
                 .setApplicationName(APPLICATION_NAME)
                 .build();
 
         //Create Data List of user input
         List<Object> userData = new ArrayList<>();
-        userData.add(nameSubmit);
-        userData.add(gradSubmit);
         userData.add(schoolID);
+        userData.add(nameSubmit);
         userData.add(gradeSubmit);
+        userData.add(gradSubmit);
         userData.add(positionSubmit);
+        userData.add(emailSubmit);
 
         try {
             ValueRange response = service.spreadsheets().values()
@@ -169,7 +176,8 @@ public class NewMemberController {
                 for (List row : values) {
                     dataLength++;
                     // Print columns A and E, which correspond to indices 0 and 4.
-                    //System.out.printf("%s, %s, %s, %s, %s\n", row.get(0), row.get(1), row.get(2), row.get(3), row.get(4));
+                    System.out.printf("%s, %s, %s, %s, %s\n", row.get(0), row.get(1), row.get(2), row.get(3), row.get(4)
+                    , row.get(5));
                     if(row.get(0).equals(schoolID)){
                         System.out.println(schoolID+" ALREADY EXISTS Transferring to edit functionality.");
                         newMember = false;
@@ -179,18 +187,27 @@ public class NewMemberController {
             }
 
             if(newMember){
+                dataLength+=2;
                 //Add Member Functionality
+                System.out.println("Attempting to add member");
                 try {
                     String dataLengthString = Integer.toString(dataLength);
-                    String writeRangeString = "Members!A" + dataLengthString + ":E" + dataLengthString;
+                    String writeRangeString = "Members!A" + dataLengthString + ":F" + dataLengthString;
                     List<List<Object>> updateValues = new ArrayList<>();
                     updateValues.add(userData);
 
                     ValueRange vr = new ValueRange().setValues(updateValues).setMajorDimension("ROWS");
                     service.spreadsheets().values()
                             .update(spreadsheetId, writeRangeString, vr).setValueInputOption("RAW").execute();
+                    int dialogButton = JOptionPane.YES_NO_OPTION;
+                    int dialogResult = JOptionPane.showConfirmDialog(null,"Add another member?",
+                            "Are you done?",dialogButton);
+                    if(dialogResult == 1){
+                        returnHome();
+                    }
                 }catch (Exception e){
                     e.printStackTrace();
+                    System.out.println("Write unsuccessful");
                 }
 
 
@@ -215,8 +232,7 @@ public class NewMemberController {
         schoolIDInput.setText("");
         gradeInput.getSelectionModel().clearSelection();
         positionInput.getSelectionModel().clearSelection();
-
-
+        emailInput.setText("");
     }
 
 

@@ -14,7 +14,7 @@ import javax.swing.*;
 
 public class AuthenticationController {
 
-    private String TempPass = "loginpass";
+    private String TempPass = "p";
 
     @FXML
     private PasswordField authPassField;
